@@ -1,0 +1,4 @@
+- [Preferred explanations](preferred-explanations.md) — how to present technical choices
+- [Review summaries](review-summaries.md) — what to include when reporting a change
+- [Offline field use](offline-field-use.md) — context for product tradeoffs
+- [Design reference](design-reference.md) — where to find the team's design brief
