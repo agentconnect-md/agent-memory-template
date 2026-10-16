@@ -1,10 +1,11 @@
 # Agent Memory Template
 
 Keep useful context across coding agents and machines with plain Markdown and
-Git. Each project gets a small index and one file per durable fact. Claude Code,
-Codex, and other agents can read the same notes through a shared protocol.
+Git. Each project gets a small index and one file per durable fact. Claude Code
+uses its native auto memory; Codex and other agents use a shared protocol to
+read and write the same notes.
 
-[中文说明](README.zh-CN.md) · [Memory protocol](PROTOCOL.md) · [Examples](examples/my-app)
+[Use this template](https://github.com/agentconnect-md/agent-memory-template/generate) · [中文说明](README.zh-CN.md) · [Memory protocol](PROTOCOL.md) · [Examples](examples/my-app)
 
 This public template contains only fictional examples. **Create a private copy
 for your real memories.** The helpers need no API key, database, or model service.
@@ -12,8 +13,8 @@ They use Python 3.9+, Bash, and Git on macOS or Linux.
 
 ## Start in five minutes
 
-1. Choose **Use this template → Create a new repository** on GitHub. Select
-   **Private** and use a name such as `agent-memory`. Copy its clone URL.
+1. [Create your repository from this template](https://github.com/agentconnect-md/agent-memory-template/generate).
+   Select **Private** and use a name such as `agent-memory`. Copy its clone URL.
 2. Clone **your new repository** to an unused directory:
 
    ```bash
@@ -24,24 +25,16 @@ They use Python 3.9+, Bash, and Git on macOS or Linux.
    Any location works. The installer uses the checkout's actual absolute path.
    If you already have a memory store, use another location and review migration
    manually; these helpers do not import or replace existing memories.
-3. Enable a project and install the protocol for the agents you use. Replace
-   `my-app` with the basename of your project directory:
+3. Enable a project store. Replace `my-app` with the basename of your project
+   directory:
 
    ```bash
-   python3 bin/install.py --project my-app \
-     --instructions "$HOME/.codex/AGENTS.md" \
-     --instructions "$HOME/.claude/CLAUDE.md" --dry-run
-
-   # Review the target paths, then run the same command without --dry-run.
-   python3 bin/install.py --project my-app \
-     --instructions "$HOME/.codex/AGENTS.md" \
-     --instructions "$HOME/.claude/CLAUDE.md"
+   python3 bin/install.py --project my-app --dry-run
+   # Review the target path, then create the empty store.
+   python3 bin/install.py --project my-app
    ```
 
-   Omit either instruction file if you do not use that agent. Existing text
-   outside the protocol markers is preserved. Re-running updates that block
-   without duplicating it. Invalid markers stop the run before any file writes.
-4. Finish the agent-specific access setup below, start a **new session** in
+4. [Connect the agents you use](#connect-your-agents), then start a **new session** in
    `my-app`, and ask: “Which shared memory store applies to this project?”
    Then try: “Remember that I prefer a concrete example before an abstract
    explanation.” Check `my-app/MEMORY.md` and its linked topic file yourself.
@@ -82,6 +75,15 @@ Use the global instruction file in your Codex home, normally
 A non-empty `AGENTS.override.md` takes precedence; install into that file if
 you use it. See the [official instruction discovery rules](https://learn.chatgpt.com/docs/agent-configuration/agents-md#how-codex-discovers-guidance).
 
+```bash
+python3 bin/install.py --instructions "$HOME/.codex/AGENTS.md" --dry-run
+# Review the target path, then install the protocol.
+python3 bin/install.py --instructions "$HOME/.codex/AGENTS.md"
+```
+
+Existing text outside the protocol markers is preserved. Re-running updates
+that block without duplicating it. Invalid markers stop the run before any writes.
+
 For CLI `workspace-write` sessions, merge the absolute memory path into your
 Codex `config.toml` (normally `~/.codex/config.toml`), preserving existing entries:
 
@@ -96,10 +98,9 @@ does not change permissions or configuration. See the [configuration reference](
 
 ### Claude Code
 
-The shared protocol can live in `~/.claude/CLAUDE.md`. Pass your actual user
-instruction path if you use a custom configuration directory.
-
-To point Claude's native auto memory at the same store, merge this into the
+Use Claude's native auto memory. Do not install the shared protocol into
+`CLAUDE.md`; that would add a second set of memory instructions and directory rules.
+To point native auto memory at the store you created, merge this into the
 project's `.claude/settings.local.json`:
 
 ```json
@@ -111,6 +112,15 @@ project's `.claude/settings.local.json`:
 Use your actual store path and preserve other settings. Keep this personal
 configuration out of source control. Workspace trust and managed permissions
 still apply. See [Claude Code memory documentation](https://code.claude.com/docs/en/memory#storage-location).
+
+Start a new session and use `/memory` to check the effective directory. Check
+each worktree's effective settings when configuring it. If auto memory is disabled,
+respect that setting; this template does not enable a second memory mechanism.
+
+If you followed an earlier version of this template, remove only the block
+between `<!-- BEGIN AGENT-MEMORY-PROTOCOL -->` and
+`<!-- END AGENT-MEMORY-PROTOCOL -->` from your user-level `CLAUDE.md`. Keep your
+other instructions and existing notes.
 
 ### Other agents, nested projects, and worktrees
 
@@ -129,6 +139,26 @@ mapping to the original store; the protocol does not infer Git identities.
 To enable another store: `python3 bin/install.py --project another-app`.
 Re-run the instruction installation after moving this checkout or editing the
 protocol. Cloud runners need their own clone, instruction setup, and file access.
+
+### Compatibility with Claude native memory
+
+The shared files use Claude's documented layout: `MEMORY.md`, topic Markdown
+files, and the four memory types. The samples use `metadata.type`, matching the
+file-memory prompt inspected in Claude Code 2.1.301. Preserve the frontmatter
+layout an installed agent already uses, including a top-level `type` if present;
+the template does not require rewriting existing notes.
+
+Claude loads the index automatically, up to 200 lines or 25KB; keep shared
+indexes below both limits. Other agents read it through the protocol, so their
+recall depends on instruction following. Native repository/worktree identity
+and the protocol's basename lookup also differ; explicit mappings prevent
+two unrelated projects from sharing a store.
+
+Claude adds a `modified` timestamp to notes with frontmatter when it writes
+them. Other writers should preserve extra fields and update an existing
+timestamp when changing the note. See the [native memory behavior](https://code.claude.com/docs/en/memory#how-it-works).
+Sharing files does not provide concurrent editing protection or identical
+recall across agents; verify the selected directory and review conflicting edits.
 
 ## Sync between machines
 
