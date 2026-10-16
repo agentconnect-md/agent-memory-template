@@ -1,5 +1,9 @@
 # Shared agent memory protocol
 
+This protocol is for agents accessing the shared store without Claude's native
+auto memory. Configure Claude with `autoMemoryDirectory` instead of installing
+this block into `CLAUDE.md`.
+
 The installer copies the marked block to a user-level instruction file and
 replaces `{{MEMORY_ROOT}}` with this checkout's absolute path. For manual setup,
 replace that token yourself. Keep personal paths out of project repositories.
@@ -39,10 +43,14 @@ If a user explicitly maps a project or worktree to a store, use that mapping.
 
   Choose one `type`. Add one index line:
   `- [Short title](short-descriptive-slug.md) — when this is useful`.
-- Keep `MEMORY.md` as a concise index, with details in topic files. Search for
-  an existing fact before adding one; update it instead of creating duplicates.
+- Keep `MEMORY.md` below 200 lines and 25KB so Claude can load the complete index.
+  Keep details in topic files. Search for an existing fact before adding one;
+  update it instead of creating duplicates.
   Remove stale facts and their index entries when authorized. Link related
   memories with relative Markdown links.
+- Preserve existing frontmatter structure and additional fields; do not migrate
+  a note's fields just to match the example. When editing a note with a `modified`
+  field, update it to the current ISO 8601 timestamp rather than leaving it stale.
 - Do not save session logs, temporary task progress, source-code summaries,
   credentials, tokens, or copied private documents. Keep memory out of project
   repositories and public contributions.
